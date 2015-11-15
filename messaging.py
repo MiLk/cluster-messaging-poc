@@ -71,7 +71,8 @@ class Messaging():
             return True
         return False
 
-    def messages_for(self, to):
+    def messages_for(self, client_id):
+        to = '%s.%s' % (self._identity , client_id)
         if not self.has_message_for(to):
             return None
         return self._messages[to]

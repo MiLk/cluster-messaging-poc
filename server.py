@@ -16,8 +16,6 @@ server_identity = str(uuid.uuid1())
 
 messaging = Messaging(server_identity)
 
-identities = list()
-
 opcodes = {
     'IDENTITY': 1,
     'MESSAGE': 2,
@@ -65,14 +63,13 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     client.
     """
 
-    identity = False
+    identity = None
 
     def handle(self):
         try:
             while is_running:
                 if self.identity:
-                    full_identity = server_identity + '.' + self.identity
-                    messages = messaging.messages_for(full_identity)
+                    messages = messaging.messages_for(self.identity)
                     while messages:
                         msg = messages.popleft()
                         send_message(self.request, msg)
@@ -89,9 +86,8 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
                 (opcode,) = struct.unpack('L', data)
                 if opcode == opcodes['IDENTITY']:
                     self.identity = rcv_string(self.request)
-                    print('received identity %s' % self.identity)
+                    print('Client connected: %s' % self.identity)
                     send_identities(self.request)
-                    identities.append(server_identity + '.' + self.identity)
                     sessions.add(server_identity, self.identity)
 
                 if opcode == opcodes['MESSAGE']:
@@ -100,12 +96,13 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         except IOError as e:
             if e.errno == errno.EPIPE:
                 pass
+            elif e.errno == errno.ECONNRESET:
+                pass
             else:
                 raise e
         finally:
-            if self.identity in identities:
-                identities.remove(self.identity)
-                sessions.delete(self.identity)
+            print('Client disconnected: %s' % self.identity)
+            sessions.delete(self.identity)
             # Clean up the connection
             self.request.close()
 
