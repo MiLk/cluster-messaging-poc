@@ -12,8 +12,6 @@ class Messaging():
         self._create_queue(identity)
         self._setup_consumers()
 
-        self._message_callback = None
-
         self._messages = dict()
 
     def _create_exchanges(self):
@@ -27,22 +25,19 @@ class Messaging():
                                  queue=self._queue.method.queue,
                                  routing_key=identity + '.*')
 
-    def set_callback(self, callback):
-        self._message_callback = callback
-
     def _callback(self, ch, method, properties, body):
         # Ignore broadcast sent by this node
         if method.exchange == 'broadcast' and method.routing_key == self._identity:
-            return
-
-        if self._message_callback:
-            res = self._message_callback(method.exchange, method.routing_key, body)
-            if res:
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-        else:
-            print(method, properties)
-            print " [x] %r:%r" % (method.routing_key, body)
             ch.basic_ack(delivery_tag=method.delivery_tag)
+            return True
+
+        # Ignore broadcast for now
+        if method.exchange == 'broadcast':
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            return True
+
+        self.send(method.routing_key, body)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def _setup_consumers(self):
         self._channel.basic_consume(self._callback,

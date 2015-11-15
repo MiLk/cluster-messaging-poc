@@ -144,17 +144,6 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-
-def messaging_callback(exchange, routing_key, body):
-    if exchange == 'broadcast':
-        return True
-
-    messaging.send(routing_key, body)
-    return True
-
-
-messaging.set_callback(messaging_callback)
-
 messaging_thread = threading.Thread(target=messaging.run)
 messaging_thread.daemon = True
 messaging_thread.start()
