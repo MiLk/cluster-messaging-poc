@@ -29,3 +29,7 @@ python client.py 10000
 ```
 
 The new clients will send messages to clients already present in the network.
+
+## TODO
+
+* Broadcast

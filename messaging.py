@@ -1,5 +1,5 @@
 import pika
-
+from collections import deque
 
 class Messaging():
     def __init__(self, identity):
@@ -13,6 +13,8 @@ class Messaging():
         self._setup_consumers()
 
         self._message_callback = None
+
+        self._messages = dict()
 
     def _create_exchanges(self):
         self._channel.exchange_declare(exchange='broadcast', type='fanout')
@@ -55,11 +57,26 @@ class Messaging():
         self._connection.close()
 
     def send(self, to, message):
-        self._channel.basic_publish(exchange='direct_message',
-                                    routing_key=to,
-                                    body=message)
+        if to.find(self._identity) == 0:
+            if to not in self._messages:
+                self._messages[to] = deque()
+            self._messages[to].append(message)
+        else:
+            self._channel.basic_publish(exchange='direct_message',
+                                        routing_key=to,
+                                        body=message)
 
     def broadcast(self, message):
         self._channel.basic_publish(exchange='broadcast',
                                     routing_key=self._identity,
                                     body=message)
+
+    def has_message_for(self, to):
+        if to in self._messages:
+            return True
+        return False
+
+    def messages_for(self, to):
+        if not self.has_message_for(to):
+            return None
+        return self._messages[to]

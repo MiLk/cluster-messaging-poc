@@ -4,7 +4,6 @@ import struct
 import sys
 import time
 import threading
-from collections import deque
 import select
 import uuid
 from messaging import Messaging
@@ -37,7 +36,7 @@ def rcv_message(connection):
     (s_to, s_msg) = struct.unpack('LL', data)
     to = connection.recv(s_to)
     msg = connection.recv(s_msg)
-    return (to, msg)
+    return to, msg
 
 
 def send_identities(connection):
@@ -56,8 +55,6 @@ def send_message(connection, msg):
 
 is_running = True
 
-messages = dict()
-
 
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     """
@@ -71,15 +68,14 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     identity = False
 
     def handle(self):
-        global messages
         try:
             while is_running:
                 if self.identity:
                     full_identity = server_identity + '.' + self.identity
-                    if full_identity in messages:
-                        while messages[full_identity]:
-                            msg = messages[full_identity].popleft()
-                            send_message(self.request, msg)
+                    messages = messaging.messages_for(full_identity)
+                    while messages:
+                        msg = messages.popleft()
+                        send_message(self.request, msg)
 
                 ready = select.select([self.request], [], [], 1)
                 if not ready[0]:
@@ -100,14 +96,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
 
                 if opcode == opcodes['MESSAGE']:
                     (to, msg) = rcv_message(self.request)
-                    if to.find(server_identity) == 0:
-                        if to not in messages:
-                            messages[to] = deque()
-                        messages[to].append(msg)
-                    else:
-                        messaging.send(to, msg)
-
-            print('Close %s' % self.identity)
+                    messaging.send(to, msg)
         except IOError as e:
             if e.errno == errno.EPIPE:
                 pass
@@ -157,11 +146,11 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def messaging_callback(exchange, routing_key, body):
-    global messages
-    print(exchange, routing_key, body)
-    if routing_key not in messages:
-        messages[routing_key] = deque()
-    messages[routing_key].append(body)
+    if exchange == 'broadcast':
+        return True
+
+    messaging.send(routing_key, body)
+    return True
 
 
 messaging.set_callback(messaging_callback)
