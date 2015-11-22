@@ -1,6 +1,7 @@
 "use strict";
 
 var Riak = require('./lib/riak.js');
+var SessionStore = require('./lib/sessionstore.js');
 
 var riak = new Riak([
   'localhost:32777',
@@ -9,6 +10,8 @@ var riak = new Riak([
   'localhost:32771',
   'localhost:32769'
 ]);
+
+var sessionStore = new SessionStore(riak);
 
 function debug(err) {
   if (typeof err === 'string') {
@@ -19,26 +22,26 @@ function debug(err) {
   console.log(err.stack);
 }
 
-riak.set('test', 'B', 'aaa').then(() => {
-  return riak.get('test', 'B');
-}).then((value) => {
-  console.log('Value 1', value.toString());
-  return riak.set('test', 'B', 'bbb');
-}).then(() => {
-  return riak.get('test', 'B');
-}).then((value) => {
-    console.log('Value 2', value.toString());
+Promise.all([
+  sessionStore.set('clientA', 'serverA'),
+  sessionStore.set('clientB', 'serverB'),
+  sessionStore.set('clientC', 'serverA'),
+  sessionStore.set('clientD', 'serverA'),
+  sessionStore.set('clientE', 'serverB'),
+  sessionStore.set('clientF', 'serverC')
+]).then(() => {
+  return Promise.all([
+    sessionStore.get('clientA'),
+    sessionStore.get('clientB'),
+    sessionStore.get('clientC'),
+    sessionStore.get('clientD'),
+    sessionStore.get('clientE'),
+    sessionStore.get('clientF')
+  ]);
+}).then((values) => {
+  console.log('Server addresses:\n*', values.map((v) => v.toString()).join("\n* "));
+  riak.shutdown();
 }).catch(debug);
-
-function inc(value) {
-  return !value ? 0 : parseInt(value) + 1;
-}
-
-riak.set('test', 'D', inc).then(() => {
-  return riak.get('test', 'D');
-}).then((value) => {
-  console.log('Value D', value.toString());
-});
 
 process.on('SIGINT', function() {
   riak.shutdown();
