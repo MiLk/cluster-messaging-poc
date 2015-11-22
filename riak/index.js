@@ -20,14 +20,14 @@ function debug(err) {
 }
 
 riak.set('test', 'B', 'aaa').then(() => {
-  riak.get('test', 'B').then((value) => {
-    console.log('Value 1', value.toString());
-    riak.set('test', 'B', 'bbb').then(() => {
-      riak.get('test', 'B').then((value) => {
-        console.log('Value 2', value.toString());
-      }).catch(debug);
-    }).catch(debug);
-  }).catch(debug);
+  return riak.get('test', 'B');
+}).then((value) => {
+  console.log('Value 1', value.toString());
+  return riak.set('test', 'B', 'bbb');
+}).then(() => {
+  return riak.get('test', 'B');
+}).then((value) => {
+    console.log('Value 2', value.toString());
 }).catch(debug);
 
 function inc(value) {
@@ -35,9 +35,9 @@ function inc(value) {
 }
 
 riak.set('test', 'D', inc).then(() => {
-  riak.get('test', 'D').then((value) => {
-    console.log('Value D', value.toString());
-  });
+  return riak.get('test', 'D');
+}).then((value) => {
+  console.log('Value D', value.toString());
 });
 
 process.on('SIGINT', function() {
