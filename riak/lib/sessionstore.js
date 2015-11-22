@@ -18,4 +18,8 @@ module.exports = class {
     return this.datastore.deleteValue(this.bucket, clientId);
   }
 
+  shutdown() {
+    return this.datastore.shutdown();
+  }
+
 };

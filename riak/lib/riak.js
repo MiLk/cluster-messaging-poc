@@ -79,10 +79,12 @@ module.exports = class {
   }
 
   shutdown() {
-    this.client.shutdown((state) => {
-      if (state === Riak.Cluster.State.SHUTDOWN) {
-        process.exit();
-      }
+    return new Promise((resolve, reject) => {
+      this.client.shutdown((state) => {
+        if (state === Riak.Cluster.State.SHUTDOWN) {
+          resolve();
+        }
+      });
     });
   }
 };

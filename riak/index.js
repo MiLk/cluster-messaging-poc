@@ -14,12 +14,17 @@ var riak = new Riak([
 var sessionStore = new SessionStore(riak);
 
 function debug(err) {
+  console.log(err);
   if (typeof err === 'string') {
     console.log(err);
     return;
   }
   console.error(err.message);
   console.log(err.stack);
+}
+
+function onShutdown() {
+  process.exit(0);
 }
 
 Promise.all([
@@ -40,9 +45,9 @@ Promise.all([
   ]);
 }).then((values) => {
   console.log('Server addresses:\n*', values.map((v) => v.toString()).join("\n* "));
-  riak.shutdown();
+  sessionStore.shutdown().then(onShutdown).catch(debug);
 }).catch(debug);
 
 process.on('SIGINT', function() {
-  riak.shutdown();
+  sessionStore.shutdown().then(onShutdown).catch(debug);
 });
