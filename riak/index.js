@@ -1,7 +1,11 @@
 "use strict";
 
+var net = require('net');
+var path = require('path');
 var Riak = require('./lib/riak.js');
 var SessionStore = require('./lib/sessionstore.js');
+var Router = require('./lib/router.js');
+var server = net.createServer();
 
 var riak = new Riak([
   'localhost:32777',
@@ -24,30 +28,32 @@ function debug(err) {
 }
 
 function onShutdown() {
-  process.exit(0);
+  server.close(() => {
+    process.exit(0);
+  });
 }
 
-Promise.all([
-  sessionStore.set('clientA', 'serverA'),
-  sessionStore.set('clientB', 'serverB'),
-  sessionStore.set('clientC', 'serverA'),
-  sessionStore.set('clientD', 'serverA'),
-  sessionStore.set('clientE', 'serverB'),
-  sessionStore.set('clientF', 'serverC')
-]).then(() => {
-  return Promise.all([
-    sessionStore.get('clientA'),
-    sessionStore.get('clientB'),
-    sessionStore.get('clientC'),
-    sessionStore.get('clientD'),
-    sessionStore.get('clientE'),
-    sessionStore.get('clientF')
-  ]);
-}).then((values) => {
-  console.log('Server addresses:\n*', values.map((v) => v.toString()).join("\n* "));
+function shutdown() {
   sessionStore.shutdown().then(onShutdown).catch(debug);
-}).catch(debug);
+}
 
 process.on('SIGINT', function() {
-  sessionStore.shutdown().then(onShutdown).catch(debug);
+  shutdown();
+});
+
+var router = new Router(server, sessionStore);
+
+server.on('error', debug);
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    shutdown();
+  }
+});
+server.listen(path.join(__dirname, 'server.sock'), function () {
+  console.log("Server listening on %j", server.address());
+});
+
+process.on('uncaughtException', function (err) {
+  console.log(err);
+  shutdown();
 });

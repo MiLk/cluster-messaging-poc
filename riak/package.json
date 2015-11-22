@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "basho-riak-client": "^1.8.1"
+    "basho-riak-client": "^1.8.1",
+    "node-uuid": "^1.4.7"
   }
 }
