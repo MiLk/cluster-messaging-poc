@@ -3,17 +3,17 @@
 var Riak = require('basho-riak-client');
 
 module.exports = class {
-  constructor (servers) {
+  constructor(servers) {
     this.connect(servers);
   }
 
-  connect (servers) {
+  connect(servers) {
     this.client = new Riak.Client(servers);
   }
 
-  _fetch (bucket, key) {
+  _fetch(bucket, key) {
     return new Promise((resolve, reject) => {
-      this.client.fetchValue({ bucket: bucket, key: key },
+      this.client.fetchValue({bucket: bucket, key: key},
         function (err, rslt) {
           if (err) {
             reject(err);
@@ -27,15 +27,15 @@ module.exports = class {
     });
   }
 
-  get (bucket, key) {
-    return this._fetch(bucket,key).then((riakObj) => {
+  get(bucket, key) {
+    return this._fetch(bucket, key).then((riakObj) => {
       return riakObj.value;
     });
   }
 
-  _store (object) {
+  _store(object) {
     return new Promise((resolve, reject) => {
-      this.client.storeValue({ value: object }, function (err, rslt) {
+      this.client.storeValue({value: object}, function (err, rslt) {
         if (err) {
           reject(err);
           return;
@@ -45,30 +45,21 @@ module.exports = class {
     });
   }
 
-  set (bucket, key, value) {
-    return new Promise((resolve, reject) => {
-      this._fetch(bucket, key)
-        .then((riakObj) => {
-          if (!riakObj) {
-            riakObj = new Riak.Commands.KV.RiakObject();
-            riakObj.setBucket(bucket);
-            riakObj.setKey(key);
-          }
-          if (typeof value == 'function') {
-            riakObj.setValue(value(riakObj.value));
-          } else {
-            riakObj.setValue(value);
-          }
-          this._store(riakObj)
-            .then(resolve)
-            .catch(reject);
-        }).catch(reject);
-    });
+  _insert(bucket, key, value) {
+    let riakObj = new Riak.Commands.KV.RiakObject();
+    riakObj.setBucket(bucket);
+    riakObj.setKey(key);
+    riakObj.setValue(value);
+    return this._store(riakObj);
   }
 
-  deleteValue (bucket, key) {
+  set(bucket, key, value) {
+    return this._insert(bucket, key, value);
+  }
+
+  deleteValue(bucket, key) {
     return new Promise((resolve, reject) => {
-      this.client.deleteValue({ bucket: bucket, key: key }, function (err, rslt) {
+      this.client.deleteValue({bucket: bucket, key: key}, function (err, rslt) {
         if (err) {
           reject(err);
           return;
