@@ -43,8 +43,18 @@ class Connection {
   }
 
   disconnectClient(clientId) {
-    this.router.sessionStore.remove(clientId)
-    console.log('Client', clientId, 'disconnected');
+    this.router.sessionStore.get(clientId).then((buffer) => {
+      return buffer.toString();
+    }).then((serverId) => {
+      if (serverId !== this.identity) {
+        console.log('Client', clientId, 'disconnected from', this.identity, 'but connected to', serverId);
+        return;
+      }
+      this.router.sessionStore.remove(clientId)
+      console.log('Client', clientId, 'disconnected from', this.identity);
+    }).catch((err) => {
+      throw err;
+    });
   }
 
   sendMessage(from, to, body) {
