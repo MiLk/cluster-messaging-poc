@@ -20,6 +20,11 @@ if (backendConfig.engine === 'redis') {
   backend = new Redis(backendConfig.servers);
 }
 
+if (backendConfig.engine === 'couchbase') {
+  var Couchbase = require('./lib/couchbase.js');
+  backend = new Couchbase(backendConfig.servers);
+}
+
 if (backend === null) {
   console.error('Invalid backend.');
   process.exit(1);

@@ -1,0 +1,5 @@
+backend:
+  engine: couchbase
+  servers:
+    address: couchbase://localhost?detailed_errcodes=1
+    bucket: default
