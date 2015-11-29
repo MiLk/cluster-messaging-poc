@@ -82,5 +82,7 @@ client.on('data', function (data) {
 });
 
 process.on('SIGINT', function () {
+  disconnectClient(client, 'clientA' + id);
+  disconnectClient(client, 'clientC' + id);
   client.end();
 });

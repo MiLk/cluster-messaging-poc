@@ -2,20 +2,30 @@
 
 var net = require('net');
 var path = require('path');
-var Riak = require('./lib/riak.js');
 var SessionStore = require('./lib/sessionstore.js');
 var Router = require('./lib/router.js');
 var server = net.createServer();
+var config = require('config');
 
-var riak = new Riak([
-  'localhost:32777',
-  'localhost:32775',
-  'localhost:32773',
-  'localhost:32771',
-  'localhost:32769'
-]);
+var backendConfig = config.get('backend');
+var backend = null;
 
-var sessionStore = new SessionStore(riak);
+if (backendConfig.engine === 'riak') {
+  var Riak = require('./lib/riak.js');
+  backend = new Riak(backendConfig.servers);
+}
+
+if (backendConfig.engine === 'redis') {
+  var Redis = require('./lib/redis.js');
+  backend = new Redis(backendConfig.servers);
+}
+
+if (backend === null) {
+  console.error('Invalid backend.');
+  process.exit(1);
+}
+
+var sessionStore = new SessionStore(backend);
 
 function debug(err) {
   console.log(err);

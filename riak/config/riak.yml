@@ -1,0 +1,8 @@
+backend:
+  engine: riak
+  servers:
+    - localhost:32777
+    - localhost:32775
+    - localhost:32773
+    - localhost:32771
+    - localhost:32769

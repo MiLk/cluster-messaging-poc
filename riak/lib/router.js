@@ -60,6 +60,9 @@ class Connection {
   sendMessage(from, to, body) {
     this.router.sessionStore.get(to)
       .then((buffer) => {
+        if (!buffer) {
+          throw new Error('Client not found.');
+        }
         return buffer.toString();
       })
       .then((serverId) => {
@@ -68,6 +71,8 @@ class Connection {
           return;
         }
         this.sendNetwork(serverId, from, to, body);
+      }).catch((error) => {
+        console.error(error);
       });
   }
 
@@ -76,6 +81,9 @@ class Connection {
   }
 
   sendNetwork(serverId, from, to, body) {
+    if (!this.router.servers[serverId]) {
+      throw new Error('Server ' + serverId + ' no longer available.');
+    }
     this.router.servers[serverId].socket.write(JSON.stringify([4, from, to, body]));
   }
 

@@ -10,10 +10,18 @@ Implement a server to server messaging system using a Node.js broker connected t
 npm install .
 ```
 
+### Riak
+
 ```bash
 git clone git@github.com:hectcastro/docker-riak.git
 cd docker-riak
 make start-cluster
+```
+
+### Redis
+
+```bash
+docker run --name redis -p 6379:6379 -d redis
 ```
 
 ## Run
