@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Riak = require('basho-riak-client');
 

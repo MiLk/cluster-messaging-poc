@@ -13,5 +13,8 @@
     "couchbase": "^2.1.2",
     "ioredis": "^1.11.1",
     "node-uuid": "^1.4.7"
+  },
+  "devDependencies": {
+    "jscs": "^2.6.0"
   }
 }

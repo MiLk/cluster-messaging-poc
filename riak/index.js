@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var net = require('net');
 var path = require('path');
@@ -65,7 +65,7 @@ server.on('error', (err) => {
   }
 });
 server.listen(path.join(__dirname, 'server.sock'), function () {
-  console.log("Server listening on %j", server.address());
+  console.log('Server listening on %j', server.address());
 });
 
 process.on('uncaughtException', function (err) {

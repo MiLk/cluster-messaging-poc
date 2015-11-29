@@ -1,0 +1,5 @@
+{
+	"preset": "node-style-guide",
+    "esnext": true,
+	"disallowSpacesInFunction": null
+}

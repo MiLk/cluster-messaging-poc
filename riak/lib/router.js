@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 class Connection {
   constructor(router, socket) {
@@ -10,7 +10,7 @@ class Connection {
       0: this.registerIdentity,
       1: this.connectClient,
       2: this.disconnectClient,
-      3: this.sendMessage
+      3: this.sendMessage,
     };
 
     socket.on('data', this.dataListener.bind(this));
@@ -47,7 +47,8 @@ class Connection {
       return buffer.toString();
     }).then((serverId) => {
       if (serverId !== this.identity) {
-        console.log('Client', clientId, 'disconnected from', this.identity, 'but connected to', serverId);
+        console.log('Client', clientId, 'disconnected from', this.identity,
+          'but connected to', serverId);
         return;
       }
       this.router.sessionStore.remove(clientId)
@@ -84,7 +85,8 @@ class Connection {
     if (!this.router.servers[serverId]) {
       throw new Error('Server ' + serverId + ' no longer available.');
     }
-    this.router.servers[serverId].socket.write(JSON.stringify([4, from, to, body]));
+    this.router.servers[serverId].socket.write(
+      JSON.stringify([4, from, to, body]));
   }
 
   closeListener() {
