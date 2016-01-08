@@ -1,16 +1,19 @@
 'use strict';
 
+var Peer = require('./peer');
+
 class Connection {
   constructor(router, socket) {
     this.router = router;
     this.socket = socket;
     this.identity = null;
+    this.peer = new Peer(router, this.sendLocal.bind(this), this.sendNetwork.bind(this));
 
     this.opcodes = {
-      0: this.registerIdentity,
-      1: this.connectClient,
-      2: this.disconnectClient,
-      3: this.sendMessage,
+      0: this.peer.registerIdentity,
+      1: this.peer.connectClient,
+      2: this.peer.disconnectClient,
+      3: this.peer.sendMessage,
     };
 
     socket.on('data', this.dataListener.bind(this));
@@ -28,55 +31,6 @@ class Connection {
     }
   }
 
-  registerIdentity(identity) {
-    if (this.identity) {
-      throw new Error('This connection has already an identity');
-    }
-    this.identity = identity;
-    this.router.servers[identity] = this;
-    console.log('Server registered as:', identity);
-  }
-
-  connectClient(clientId) {
-    this.router.sessionStore.set(clientId, this.identity);
-    console.log('Client', clientId, 'connected to server', this.identity);
-  }
-
-  disconnectClient(clientId) {
-    this.router.sessionStore.get(clientId).then((buffer) => {
-      return buffer.toString();
-    }).then((serverId) => {
-      if (serverId !== this.identity) {
-        console.log('Client', clientId, 'disconnected from', this.identity,
-          'but connected to', serverId);
-        return;
-      }
-      this.router.sessionStore.remove(clientId)
-      console.log('Client', clientId, 'disconnected from', this.identity);
-    }).catch((err) => {
-      throw err;
-    });
-  }
-
-  sendMessage(from, to, body) {
-    this.router.sessionStore.get(to)
-      .then((buffer) => {
-        if (!buffer) {
-          throw new Error('Client not found.');
-        }
-        return buffer.toString();
-      })
-      .then((serverId) => {
-        if (serverId === this.identity) {
-          this.sendLocal(from, to, body);
-          return;
-        }
-        this.sendNetwork(serverId, from, to, body);
-      }).catch((error) => {
-        console.error(error);
-      });
-  }
-
   sendLocal(from, to, body) {
     this.socket.write(JSON.stringify([4, from, to, body]));
   }
@@ -90,8 +44,8 @@ class Connection {
   }
 
   closeListener() {
-    console.log('Server', this.identity, 'disconnected.');
-    delete this.router.servers[this.identity];
+    console.log('Server', this.peer.identity, 'disconnected.');
+    delete this.router.servers[this.peer.identity];
   }
 }
 

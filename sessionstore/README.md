@@ -7,11 +7,18 @@ Implement a server to server messaging system using a Node.js broker connected t
 ## Architecture
 
 ```
-   +---------+   +------------+   +--------+   +---------------+   +-----------+
-   |         |   |            |   |        |   |               |   |           |
-   |  index  +---> TCP server +---> Router +---> Session Store +---> Datastore |
-   |         |   |            |   |        |   |               |   |           |
-   +---------+   +------------+   +--------+   +---------------+   +-----------+
+          +---------+   +------------+   +--------+   +---------------+   +-----------+
+          |         |   |            |   |        |   |               |   |           |
+          |  index  +---> TCP server +---> Router +---> Session Store +---> Datastore |
+          |         |   |            |   |        |   |               |   |           |
+          +---------+   +------------+   +---+----+   +---------------+   +-----------+
+                                             |
+                                             |
+                                          +--v---+
+                                          |      |
+                                          | Peer |
+                                          |      |
+                                          +------+
 ```
 
 The router can handle the following messages:

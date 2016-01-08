@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "basho-riak-client": "^1.8.1",
+    "config": "^1.17.1",
     "couchbase": "^2.1.2",
     "ioredis": "^1.11.1",
     "node-uuid": "^1.4.7"
