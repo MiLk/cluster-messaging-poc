@@ -1,6 +1,6 @@
 'use strict';
 
-var Peer = require('./peer');
+var Peer = require('../peer');
 
 class Connection {
   constructor(router, socket) {
@@ -10,7 +10,7 @@ class Connection {
     this.peer = new Peer(router, this.sendLocal.bind(this), this.sendNetwork.bind(this));
 
     this.opcodes = {
-      0: this.peer.registerIdentity,
+      0: this.registerIdentity,
       1: this.peer.connectClient,
       2: this.peer.disconnectClient,
       3: this.peer.sendMessage,
@@ -24,11 +24,16 @@ class Connection {
     var received = JSON.parse(data);
     if (this.opcodes.hasOwnProperty(received[0])) {
       setImmediate(() => {
-        this.opcodes[received[0]].apply(this, received.slice(1));
+        this.opcodes[received[0]].apply(received[0] === 0 ? this : this.peer, received.slice(1));
       });
     } else {
       console.log('Unrecognized packet format. Data:', data, JSON.parse(data));
     }
+  }
+
+  registerIdentity (identity) {
+    this.peer.registerIdentity(identity);
+    this.router.servers[identity] = this;
   }
 
   sendLocal(from, to, body) {

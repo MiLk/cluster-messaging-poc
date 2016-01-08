@@ -1,3 +1,6 @@
+/**
+ * This file is the game server in case of a client/server/broker architecture.
+ */
 "use strict";
 
 var net = require('net');

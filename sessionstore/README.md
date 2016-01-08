@@ -6,24 +6,46 @@ Implement a server to server messaging system using a Node.js broker connected t
 
 ## Architecture
 
+### Server/Broker
+
 ```
-          +---------+   +------------+   +--------+   +---------------+   +-----------+
-          |         |   |            |   |        |   |               |   |           |
-          |  index  +---> TCP server +---> Router +---> Session Store +---> Datastore |
-          |         |   |            |   |        |   |               |   |           |
-          +---------+   +------------+   +---+----+   +---------------+   +-----------+
-                                             |
-                                             |
-                                          +--v---+
-                                          |      |
-                                          | Peer |
-                                          |      |
-                                          +------+
++---------+   +------------+   +--------+   +---------------+   +-----------+
+|         |   |            |   |        |   |               |   |           |
+|  index  +---> TCP server +---> Router +---> Session Store +---> Datastore |
+|         |   |            |   |        |   |               |   |           |
++---------+   +------------+   +---+----+   +---------------+   +-----------+
+                                   |
+                                   |
+                                +--v---+
+                                |      |
+                                | Peer |
+                                |      |
+                                +------+
 ```
 
-The router can handle the following messages:
-* `registerIdentity`: Assign the specified identity to the client which opened the current connection.
-* `connectClient`: Register the specified address to the active identity into the Session Store.
+### Brokerless
+
+```
++------------+   +--------+   +---------------+   +-----------+
+|            |   |        |   |               |   |           |
+| brokerless +---> Router +---> Session Store +---> Datastore |
+|            |   |        |   |               |   |           |
++------------+   +---+----+   +---------------+   +-----------+
+                     |
+                     |
+                  +--v---+
+                  |      |
+                  | Peer |
+                  |      |
+                  +------+
+```
+
+
+### Peer class
+
+The Peer class exposes the following methods:
+* `registerIdentity`: Assign the specified identity to the current peer.
+* `connectClient`: Register the specified address to the active peer into the Session Store.
 * `disconnectClient`: Unregister the specified address from the Session Store.
 * `sendMessage`: Send a message to the specified address.
 
@@ -61,6 +83,17 @@ docker run --name couchbase --net=host -d couchbase/server:community
 ```
 
 ## Run
+
+### Brokerless architecture
+
+In several tabs:
+```bash
+node brokerless.js 1 3
+node brokerless.js 2 3
+node brokerless.js 3 3
+```
+
+### Server/Broker architecture
 
 In several tabs:
 ```bash

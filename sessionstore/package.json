@@ -13,7 +13,8 @@
     "config": "^1.17.1",
     "couchbase": "^2.1.2",
     "ioredis": "^1.11.1",
-    "node-uuid": "^1.4.7"
+    "node-uuid": "^1.4.7",
+    "zmq": "^2.14.0"
   },
   "devDependencies": {
     "jscs": "^2.6.0"

@@ -1,9 +1,11 @@
 'use strict';
-
+/**
+ * This file is the broker in case of a client/server/broker architecture.
+ */
 var net = require('net');
 var path = require('path');
 var SessionStore = require('./lib/sessionstore.js');
-var Router = require('./lib/router.js');
+var Router = require('./lib/router/tcp.js');
 var server = net.createServer();
 var config = require('config');
 

@@ -13,7 +13,6 @@ module.exports = class {
       throw new Error('This connection has already an identity');
     }
     this.identity = identity;
-    this.router.servers[identity] = this;
     console.log('Server registered as:', identity);
   }
 
