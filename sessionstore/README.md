@@ -93,6 +93,8 @@ node brokerless.js 2 3
 node brokerless.js 3 3
 ```
 
+![Screenshot](./screens/brokerless.png)
+
 ### Server/Broker architecture
 
 In several tabs:
@@ -105,6 +107,8 @@ node server.js 1 3
 node server.js 2 3
 node server.js 3 3
 ```
+
+![Screenshot](./screens/broker.png)
 
 ## TODO
 
